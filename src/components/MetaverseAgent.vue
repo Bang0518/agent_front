@@ -1,57 +1,91 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import * as echarts from 'echarts';
 
 // 模拟数据
-const dataInput = ref({
-  textData: 85,
-  imageData: 65,
-  audioData: 45,
-  videoData: 30
+const systemResources = ref({
+  cpuUsage: 78,
+  memoryUsage: 62,
+  diskUsage: 55,
+  networkUsage: 40
 });
 
-const computingPower = ref({
-  gpuUsage: 78,
-  cpuUsage: 62,
-  memoryUsage: 55,
-  storageUsage: 40
+const serviceStatus = ref([
+  { name: '北京XX科技有限公司', cpu: 2.3, memory: 54.87, disk: 20.10, status: '正常' },
+  { name: '中关村科技园区XX科技孵化器', cpu: 3.67, memory: 60.05, disk: 18.80, status: '正常' },
+  { name: '经济开发区', cpu: 1.44, memory: 63.84, disk: 12.70, status: '正常' }
+]);
+
+const trafficData = ref({
+  today: 231,
+  yesterday: 198,
+  thisWeek: 1245,
+  lastWeek: 1102
 });
 
-const networkStatus = ref({
-  bandwidth: 82,
-  latency: 25,
-  reliability: 95,
-  throughput: 70
+const deviceDistribution = ref([
+  { value: 40, name: '移动端' },
+  { value: 30, name: '桌面端' },
+  { value: 20, name: '平板' },
+  { value: 10, name: '其他' }
+]);
+
+const regionDistribution = ref([
+  { value: 35, name: '华北' },
+  { value: 25, name: '华东' },
+  { value: 20, name: '华南' },
+  { value: 15, name: '西部' },
+  { value: 5, name: '其他' }
+]);
+
+// 历史数据趋势
+const historyTrend = ref({
+  dates: ['2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06'],
+  values: [120, 132, 101, 134, 90, 230]
 });
 
-const modelInference = ref({
-  accuracy: 88,
-  speed: 75,
-  adaptability: 80,
-  efficiency: 65
+// 交易量数据
+const transactionData = ref({
+  years: ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'],
+  values: [10, 25, 36, 42, 56, 60, 70, 65]
 });
 
 // 模拟日志数据
 const logs = ref([
-  { time: '10:05:26', type: '数据输入', message: '接收到新的文化数据包', status: '成功' },
-  { time: '10:05:28', type: '算力分配', message: '为推理任务分配GPU资源', status: '成功' },
-  { time: '10:05:30', type: '网络传输', message: '数据包传输至推理服务器', status: '成功' },
-  { time: '10:05:32', type: '模型推理', message: '启动文化知识推理引擎', status: '进行中' },
-  { time: '10:05:35', type: '模型推理', message: '生成文化元素关联图谱', status: '进行中' },
+  { time: '10:05:26', type: '系统', message: '服务器资源监控启动', status: '成功' },
+  { time: '10:05:28', type: '网络', message: '网络流量分析开始', status: '成功' },
+  { time: '10:05:30', type: '安全', message: '安全扫描完成', status: '成功' },
+  { time: '10:05:32', type: '服务', message: '服务健康检查', status: '进行中' },
+  { time: '10:05:35', type: '数据库', message: '数据库连接池优化', status: '进行中' },
 ]);
+
+// 图表实例引用
+const pieChart = ref(null);
+const regionChart = ref(null);
+const lineChart = ref(null);
+const barChart = ref(null);
+
+// 图表DOM引用
+const pieChartRef = ref(null);
+const regionChartRef = ref(null);
+const lineChartRef = ref(null);
+const barChartRef = ref(null);
 
 // 模拟实时更新数据
 let timer;
 onMounted(() => {
+  // 初始化图表
+  initCharts();
+  
   timer = setInterval(() => {
     // 随机更新数据
-    dataInput.value.textData = updateValue(dataInput.value.textData);
-    dataInput.value.imageData = updateValue(dataInput.value.imageData);
-    computingPower.value.gpuUsage = updateValue(computingPower.value.gpuUsage);
-    computingPower.value.cpuUsage = updateValue(computingPower.value.cpuUsage);
-    networkStatus.value.bandwidth = updateValue(networkStatus.value.bandwidth);
-    networkStatus.value.latency = updateValue(networkStatus.value.latency);
-    modelInference.value.accuracy = updateValue(modelInference.value.accuracy);
-    modelInference.value.speed = updateValue(modelInference.value.speed);
+    systemResources.value.cpuUsage = updateValue(systemResources.value.cpuUsage);
+    systemResources.value.memoryUsage = updateValue(systemResources.value.memoryUsage);
+    systemResources.value.diskUsage = updateValue(systemResources.value.diskUsage);
+    systemResources.value.networkUsage = updateValue(systemResources.value.networkUsage);
+    
+    // 更新图表数据
+    updateCharts();
     
     // 添加新日志
     if (logs.value.length > 20) {
@@ -60,15 +94,15 @@ onMounted(() => {
     
     const now = new Date();
     const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-    const types = ['数据输入', '算力分配', '网络传输', '模型推理'];
+    const types = ['系统', '网络', '安全', '服务', '数据库'];
     const messages = [
-      '接收文化数据包',
-      '分配计算资源',
-      '优化网络传输',
-      '执行模型推理',
-      '生成文化关联',
-      '更新知识图谱',
-      '优化推理结果'
+      '资源监控更新',
+      '网络流量分析',
+      '安全扫描',
+      '服务健康检查',
+      '数据库连接检查',
+      '系统性能优化',
+      '负载均衡调整'
     ];
     const statuses = ['成功', '进行中', '等待中'];
     
@@ -80,6 +114,16 @@ onMounted(() => {
     });
   }, 3000);
 });
+
+onUnmounted(() => {
+  clearInterval(timer);
+  // 销毁图表实例
+  pieChart.value && pieChart.value.dispose();
+  regionChart.value && regionChart.value.dispose();
+  lineChart.value && lineChart.value.dispose();
+  barChart.value && barChart.value.dispose();
+});
+
 
 // 辅助函数：在一定范围内随机更新值
 function updateValue(value) {
@@ -97,183 +141,353 @@ function getColorByValue(value) {
   if (value >= 40) return '#f7ba2a'; // 黄色
   return '#ff4949'; // 红色
 }
+
+// 初始化所有图表
+function initCharts() {
+  // 初始化设备分布饼图
+  pieChart.value = echarts.init(pieChartRef.value);
+  const pieOption = {
+    tooltip: {
+      trigger: 'item'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      textStyle: {
+        color: '#e6f7ff'
+      }
+    },
+    series: [
+      {
+        name: '设备分布',
+        type: 'pie',
+        radius: '70%',
+        data: deviceDistribution.value,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        },
+        label: {
+          color: '#e6f7ff'
+        }
+      }
+    ],
+    backgroundColor: 'transparent',
+    color: ['#41b0d3', '#42b883', '#f7ba2a', '#ff4949']
+  };
+  pieChart.value.setOption(pieOption);
+  
+  // 初始化区域分布饼图
+  regionChart.value = echarts.init(regionChartRef.value);
+  const regionOption = {
+    tooltip: {
+      trigger: 'item'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      textStyle: {
+        color: '#e6f7ff'
+      }
+    },
+    series: [
+      {
+        name: '区域分布',
+        type: 'pie',
+        radius: ['40%', '70%'], // 环形图
+        data: regionDistribution.value,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        },
+        label: {
+          color: '#e6f7ff'
+        }
+      }
+    ],
+    backgroundColor: 'transparent',
+    color: ['#41b0d3', '#42b883', '#f7ba2a', '#ff4949', '#7265e6']
+  };
+  regionChart.value.setOption(regionOption);
+  
+  // 初始化历史趋势线图
+  lineChart.value = echarts.init(lineChartRef.value);
+  const lineOption = {
+    tooltip: {
+      trigger: 'axis'
+    },
+    xAxis: {
+      type: 'category',
+      data: historyTrend.value.dates,
+      axisLine: {
+        lineStyle: {
+          color: '#8c8c8c'
+        }
+      },
+      axisLabel: {
+        color: '#e6f7ff'
+      }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: {
+        lineStyle: {
+          color: '#8c8c8c'
+        }
+      },
+      axisLabel: {
+        color: '#e6f7ff'
+      },
+      splitLine: {
+        lineStyle: {
+          color: 'rgba(140, 140, 140, 0.2)'
+        }
+      }
+    },
+    series: [
+      {
+        data: historyTrend.value.values,
+        type: 'line',
+        smooth: true,
+        lineStyle: {
+          width: 3,
+          color: '#41b0d3'
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgba(65, 176, 211, 0.5)'
+            },
+            {
+              offset: 1,
+              color: 'rgba(65, 176, 211, 0.1)'
+            }
+          ])
+        }
+      }
+    ],
+    backgroundColor: 'transparent'
+  };
+  lineChart.value.setOption(lineOption);
+  
+  // 初始化交易量柱状图
+  barChart.value = echarts.init(barChartRef.value);
+  const barOption = {
+    tooltip: {
+      trigger: 'axis'
+    },
+    xAxis: {
+      type: 'category',
+      data: transactionData.value.years,
+      axisLine: {
+        lineStyle: {
+          color: '#8c8c8c'
+        }
+      },
+      axisLabel: {
+        color: '#e6f7ff'
+      }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: {
+        lineStyle: {
+          color: '#8c8c8c'
+        }
+      },
+      axisLabel: {
+        color: '#e6f7ff'
+      },
+      splitLine: {
+        lineStyle: {
+          color: 'rgba(140, 140, 140, 0.2)'
+        }
+      }
+    },
+    series: [
+      {
+        data: transactionData.value.values,
+        type: 'bar',
+        barWidth: '40%',
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#41b0d3' },
+            { offset: 1, color: '#177ddc' }
+          ])
+        }
+      }
+    ],
+    backgroundColor: 'transparent'
+  };
+  barChart.value.setOption(barOption);
+}
+
+// 更新图表数据
+function updateCharts() {
+  if (pieChart.value) {
+    // 随机更新设备分布数据
+    deviceDistribution.value.forEach(item => {
+      item.value = updateValue(item.value);
+    });
+    pieChart.value.setOption({
+      series: [{
+        data: deviceDistribution.value
+      }]
+    });
+  }
+  
+  if (lineChart.value) {
+    // 更新最后一个数据点
+    const lastIndex = historyTrend.value.values.length - 1;
+    historyTrend.value.values[lastIndex] = updateValue(historyTrend.value.values[lastIndex]);
+    lineChart.value.setOption({
+      series: [{
+        data: historyTrend.value.values
+      }]
+    });
+  }
+}
 </script>
 
 <template>
   <div class="metaverse-container">
     <header class="dashboard-header">
-      <h1>文化元宇宙Agent伴游系统</h1>
+      <h1>XX监控系统</h1>
       <div class="system-time">{{ new Date().toLocaleString() }}</div>
     </header>
     
     <div class="dashboard-grid">
-      <!-- 数据输入模块 -->
+      <!-- 系统资源模块 -->
       <div class="dashboard-card">
         <div class="card-header">
-          <h2>数据供给</h2>
+          <h2>系统资源</h2>
           <div class="card-status">实时监控中</div>
         </div>
         <div class="card-content">
           <div class="gauge-container">
             <div class="gauge-item">
               <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${dataInput.textData * 1.8}deg)`, backgroundColor: getColorByValue(dataInput.textData)}"></div>
-                <div class="gauge-center">{{ dataInput.textData }}%</div>
-              </div>
-              <div class="gauge-label">文本数据</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${dataInput.imageData * 1.8}deg)`, backgroundColor: getColorByValue(dataInput.imageData)}"></div>
-                <div class="gauge-center">{{ dataInput.imageData }}%</div>
-              </div>
-              <div class="gauge-label">图像数据</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${dataInput.audioData * 1.8}deg)`, backgroundColor: getColorByValue(dataInput.audioData)}"></div>
-                <div class="gauge-center">{{ dataInput.audioData }}%</div>
-              </div>
-              <div class="gauge-label">音频数据</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${dataInput.videoData * 1.8}deg)`, backgroundColor: getColorByValue(dataInput.videoData)}"></div>
-                <div class="gauge-center">{{ dataInput.videoData }}%</div>
-              </div>
-              <div class="gauge-label">视频数据</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 算力支撑模块 -->
-      <div class="dashboard-card">
-        <div class="card-header">
-          <h2>算力支撑</h2>
-          <div class="card-status">运行正常</div>
-        </div>
-        <div class="card-content">
-          <div class="gauge-container">
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${computingPower.gpuUsage * 1.8}deg)`, backgroundColor: getColorByValue(computingPower.gpuUsage)}"></div>
-                <div class="gauge-center">{{ computingPower.gpuUsage }}%</div>
-              </div>
-              <div class="gauge-label">GPU使用率</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${computingPower.cpuUsage * 1.8}deg)`, backgroundColor: getColorByValue(computingPower.cpuUsage)}"></div>
-                <div class="gauge-center">{{ computingPower.cpuUsage }}%</div>
+                <div class="gauge-fill" :style="{transform: `rotate(${systemResources.cpuUsage * 1.8}deg)`, backgroundColor: getColorByValue(systemResources.cpuUsage)}"></div>
+                <div class="gauge-center">{{ systemResources.cpuUsage }}%</div>
               </div>
               <div class="gauge-label">CPU使用率</div>
             </div>
             <div class="gauge-item">
               <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${computingPower.memoryUsage * 1.8}deg)`, backgroundColor: getColorByValue(computingPower.memoryUsage)}"></div>
-                <div class="gauge-center">{{ computingPower.memoryUsage }}%</div>
+                <div class="gauge-fill" :style="{transform: `rotate(${systemResources.memoryUsage * 1.8}deg)`, backgroundColor: getColorByValue(systemResources.memoryUsage)}"></div>
+                <div class="gauge-center">{{ systemResources.memoryUsage }}%</div>
               </div>
               <div class="gauge-label">内存使用率</div>
             </div>
             <div class="gauge-item">
               <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${computingPower.storageUsage * 1.8}deg)`, backgroundColor: getColorByValue(computingPower.storageUsage)}"></div>
-                <div class="gauge-center">{{ computingPower.storageUsage }}%</div>
+                <div class="gauge-fill" :style="{transform: `rotate(${systemResources.diskUsage * 1.8}deg)`, backgroundColor: getColorByValue(systemResources.diskUsage)}"></div>
+                <div class="gauge-center">{{ systemResources.diskUsage }}%</div>
               </div>
-              <div class="gauge-label">存储使用率</div>
+              <div class="gauge-label">磁盘使用率</div>
+            </div>
+      
+              <div class="gauge-item">
+                <div class="gauge">
+                  <div class="gauge-fill" :style="{transform: `rotate(${systemResources.networkUsage * 1.8}deg)`, backgroundColor: getColorByValue(systemResources.networkUsage)}"></div>
+                  <div class="gauge-center">{{ systemResources.networkUsage }}%</div>
+                </div>
+                <div class="gauge-label">网络使用率</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <!-- 网络保障模块 -->
-      <div class="dashboard-card">
-        <div class="card-header">
-          <h2>网络保障</h2>
-          <div class="card-status">连接稳定</div>
-        </div>
-        <div class="card-content">
-          <div class="gauge-container">
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${networkStatus.bandwidth * 1.8}deg)`, backgroundColor: getColorByValue(networkStatus.bandwidth)}"></div>
-                <div class="gauge-center">{{ networkStatus.bandwidth }}%</div>
-              </div>
-              <div class="gauge-label">带宽利用率</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${networkStatus.latency * 1.8}deg)`, backgroundColor: getColorByValue(networkStatus.latency)}"></div>
-                <div class="gauge-center">{{ networkStatus.latency }}ms</div>
-              </div>
-              <div class="gauge-label">网络延迟</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${networkStatus.reliability * 1.8}deg)`, backgroundColor: getColorByValue(networkStatus.reliability)}"></div>
-                <div class="gauge-center">{{ networkStatus.reliability }}%</div>
-              </div>
-              <div class="gauge-label">可靠性</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${networkStatus.throughput * 1.8}deg)`, backgroundColor: getColorByValue(networkStatus.throughput)}"></div>
-                <div class="gauge-center">{{ networkStatus.throughput }}%</div>
-              </div>
-              <div class="gauge-label">吞吐量</div>
-            </div>
+        
+        <!-- 服务状态模块 -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>服务状态</h2>
+            <div class="card-status">运行正常</div>
+          </div>
+          <div class="card-content">
+            <table class="service-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>服务名称</th>
+                  <th>CPU</th>
+                  <th>内存</th>
+                  <th>磁盘</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(service, index) in serviceStatus" :key="index">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ service.name }}</td>
+                  <td>{{ service.cpu }}%</td>
+                  <td>{{ service.memory }}%</td>
+                  <td>{{ service.disk }}%</td>
+                  <td class="status-success">{{ service.status }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
-      
-      <!-- 模型适配模块 -->
-      <div class="dashboard-card">
-        <div class="card-header">
-          <h2>模型适配</h2>
-          <div class="card-status">推理中</div>
-        </div>
-        <div class="card-content">
-          <div class="gauge-container">
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${modelInference.accuracy * 1.8}deg)`, backgroundColor: getColorByValue(modelInference.accuracy)}"></div>
-                <div class="gauge-center">{{ modelInference.accuracy }}%</div>
-              </div>
-              <div class="gauge-label">推理准确率</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${modelInference.speed * 1.8}deg)`, backgroundColor: getColorByValue(modelInference.speed)}"></div>
-                <div class="gauge-center">{{ modelInference.speed }}%</div>
-              </div>
-              <div class="gauge-label">推理速度</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${modelInference.adaptability * 1.8}deg)`, backgroundColor: getColorByValue(modelInference.adaptability)}"></div>
-                <div class="gauge-center">{{ modelInference.adaptability }}%</div>
-              </div>
-              <div class="gauge-label">适应性</div>
-            </div>
-            <div class="gauge-item">
-              <div class="gauge">
-                <div class="gauge-fill" :style="{transform: `rotate(${modelInference.efficiency * 1.8}deg)`, backgroundColor: getColorByValue(modelInference.efficiency)}"></div>
-                <div class="gauge-center">{{ modelInference.efficiency }}%</div>
-              </div>
-              <div class="gauge-label">效率</div>
-            </div>
+        
+        <!-- 设备分布饼图 -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>设备分布</h2>
+            <div class="card-status">实时数据</div>
+          </div>
+          <div class="card-content">
+            <div ref="pieChartRef" class="chart-container"></div>
           </div>
         </div>
-      </div>
-      
-      <!-- 系统日志模块 -->
-      <div class="dashboard-card logs-card">
-        <div class="card-header">
-          <h2>系统日志</h2>
-          <div class="card-status">实时更新</div>
+        
+        <!-- 区域分布饼图 -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>区域分布</h2>
+            <div class="card-status">实时数据</div>
+          </div>
+          <div class="card-content">
+            <div ref="regionChartRef" class="chart-container"></div>
+          </div>
         </div>
-        <div class="card-content">
+        
+        <!-- 历史趋势线图 -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>数据趋势统计</h2>
+            <div class="card-status">实时更新</div>
+          </div>
+          <div class="card-content">
+            <div ref="lineChartRef" class="chart-container"></div>
+          </div>
+        </div>
+        
+        <!-- 交易量柱状图 -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>交易量数据统计</h2>
+            <div class="card-status">实时更新</div>
+          </div>
+          <div class="card-content">
+            <div ref="barChartRef" class="chart-container"></div>
+          </div>
+        </div>
+        
+        <!-- 系统日志模块 -->
+        <div class="dashboard-card logs-card">
+          <div class="card-header">
+            <h2>系统日志</h2>
+            <div class="card-status">实时更新</div>
+          </div>
+          <div class="card-content">
           <table class="logs-table">
             <thead>
               <tr>
@@ -468,6 +682,34 @@ function getColorByValue(value) {
 
 .status-waiting {
   color: #1890ff;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+  margin: 0 auto;
+}
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.service-table th {
+  background-color: #002140;
+  padding: 10px;
+  text-align: left;
+  color: #41b0d3;
+  font-weight: normal;
+}
+
+.service-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #003a6d;
+}
+
+.service-table tr:hover {
+  background-color: #002140;
 }
 
 @media (max-width: 1200px) {
