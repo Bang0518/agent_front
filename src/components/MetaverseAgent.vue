@@ -549,8 +549,8 @@ function updateCharts() {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(3, auto);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
   gap: 20px;
 }
 
@@ -563,7 +563,7 @@ function updateCharts() {
 }
 
 .logs-card {
-  grid-column: span 2;
+  grid-column: span 3;
 }
 
 .card-header {
