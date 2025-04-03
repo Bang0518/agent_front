@@ -11,9 +11,9 @@ const systemResources = ref({
 });
 
 const serviceStatus = ref([
-  { name: '北京XX科技有限公司', cpu: 2.3, memory: 54.87, disk: 20.10, status: '正常' },
-  { name: '中关村科技园区XX科技孵化器', cpu: 3.67, memory: 60.05, disk: 18.80, status: '正常' },
-  { name: '经济开发区', cpu: 1.44, memory: 63.84, disk: 12.70, status: '正常' }
+  { name: '通义千问模型', cpu: 2.3, memory: 54.87, disk: 20.10, status: '正常' },
+  { name: 'LLaMA模型', cpu: 3.67, memory: 60.05, disk: 18.80, status: '正常' },
+  { name: '文心一言模型', cpu: 1.44, memory: 63.84, disk: 12.70, status: '正常' }
 ]);
 
 const trafficData = ref({
@@ -31,10 +31,10 @@ const deviceDistribution = ref([
 ]);
 
 const regionDistribution = ref([
-  { value: 35, name: '华北' },
-  { value: 25, name: '华东' },
-  { value: 20, name: '华南' },
-  { value: 15, name: '西部' },
+  { value: 35, name: '区域1' },
+  { value: 25, name: '区域2' },
+  { value: 20, name: '区域3' },
+  { value: 15, name: '区域4' },
   { value: 5, name: '其他' }
 ]);
 
@@ -359,7 +359,7 @@ function updateCharts() {
 <template>
   <div class="metaverse-container">
     <header class="dashboard-header">
-      <h1>XX监控系统</h1>
+      <h1>面向文化大模型机密推理的数-算-网-智资源协同管控平台</h1>
       <div class="system-time">{{ new Date().toLocaleString() }}</div>
     </header>
     
