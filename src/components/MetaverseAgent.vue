@@ -40,14 +40,14 @@ const regionDistribution = ref([
 
 // 历史数据趋势
 const historyTrend = ref({
-  dates: ['2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06'],
+  dates: ['2024-10', '2024-11', '2024-12', '2025-01', '2025-02', '2025-03'],
   values: [120, 132, 101, 134, 90, 230]
 });
 
 // 交易量数据
 const transactionData = ref({
-  years: ['2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'],
-  values: [10, 25, 36, 42, 56, 60, 70, 65]
+  years: ['2020', '2021', '2022', '2023', '2024'],
+  values: [42, 56, 60, 70, 65]
 });
 
 // 模拟日志数据
@@ -524,9 +524,10 @@ function updateCharts() {
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 10px 20px;
+  flex-direction: column;
+  padding: 15px 20px;
   background-color: #001529;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -535,15 +536,16 @@ function updateCharts() {
 }
 
 .dashboard-header h1 {
-  margin: 0;
-  font-size: 1.8rem;
+  margin: 0 0 10px 0;
+  font-size: 2.2rem;
+  text-align: center;
   background: linear-gradient(90deg, #177ddc, #41b0d3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .system-time {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #177ddc;
 }
 
@@ -577,12 +579,12 @@ function updateCharts() {
 
 .card-header h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #41b0d3;
 }
 
 .card-status {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #52c41a;
   background-color: rgba(82, 196, 26, 0.1);
   padding: 3px 8px;
@@ -639,14 +641,14 @@ function updateCharts() {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #e6f7ff;
 }
 
 .gauge-label {
   margin-top: 10px;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #8c8c8c;
 }
 
@@ -661,11 +663,13 @@ function updateCharts() {
   text-align: left;
   color: #41b0d3;
   font-weight: normal;
+  font-size: 1.2rem;
 }
 
 .logs-table td {
   padding: 8px 10px;
   border-bottom: 1px solid #003a6d;
+  font-size: 1.1rem;
 }
 
 .logs-table tr:hover {
@@ -701,11 +705,13 @@ function updateCharts() {
   text-align: left;
   color: #41b0d3;
   font-weight: normal;
+  font-size: 1.2rem;
 }
 
 .service-table td {
   padding: 8px 10px;
   border-bottom: 1px solid #003a6d;
+  font-size: 1.1rem;
 }
 
 .service-table tr:hover {
