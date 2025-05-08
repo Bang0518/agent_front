@@ -28,12 +28,6 @@ pnpm install
 pnpm dev
 ```
 
-4. 构建生产版本
-
-```bash
-pnpm build
-```
-
 ## 项目结构
 
 ```
